@@ -1,0 +1,8 @@
+angularapp/.angular
+angularapp/.vscode
+angularapp/node_modules
+angularapp/obj
+angularapp/.editorconfig
+.vs
+webapi/bin
+webapi/obj

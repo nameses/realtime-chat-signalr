@@ -1,0 +1,17 @@
+﻿<div class="text-center">
+  <h2 class="">Anonym Realtime Chat</h2>
+</div>
+<div class="">
+  <div class="">
+    <ul>
+      <li *ngFor="let mObj of msgInboxArray" [ngClass]="mObj.user === msgDto.user ? 'in-msg' : 'ex-msg'">
+        {{mObj.user}} :<br /><span class="msg-italic-style">{{mObj.msgText}}</span>
+      </li>
+    </ul>
+  </div>
+  <div class="">
+    <input type="text" placeholder="Type message here" class="msg-input" [(ngModel)]="msgDto.msgText"  />
+    <button class="btn w-full text-center sm:w-auto text-white bg-indigo-500 hover:bg-indigo-600 group" (click)= "send()"><i class="fa fa-paper-plane"></i></button>
+  </div>
+  <input type="" placeholder="Your name" class="name-box" [(ngModel)]="msgDto.user" />
+</div>
