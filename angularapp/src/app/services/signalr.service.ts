@@ -49,6 +49,7 @@ export class ChatService {
 
   // Calls the controller method
   public broadcastMessage(msgDto: any) {
+    console.log(msgDto);
     this.http
       .post(this.POST_URL, msgDto)
       .subscribe((data) => console.log(data));
