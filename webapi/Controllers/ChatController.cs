@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using webapi.DTO;
 using webapi.Services;
@@ -17,6 +18,7 @@ namespace webapi.Controllers
 
         [Route("send")]
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> SendRequest([FromBody] ChatMessage msg)
         {
             await _hubContext.Clients.All.SendAsync("ReceiveOne", msg.user, msg.msgText);
