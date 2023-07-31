@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Drawing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
+using System.Text;
 using webapi.Configuration;
 
 namespace webapi.Controllers
@@ -19,14 +22,30 @@ namespace webapi.Controllers
         [Route("Validate")]
         public async Task<IActionResult> Validate(string token)
         {
-            var handler = new JwtSecurityTokenHandler();
-            var tokenObject = handler.ReadToken(token) as JwtSecurityToken;
+            var secret = _settings.Value.Key;
+            var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
 
-            if (token != null && token == _settings.Value.Key)
+            var issuer = _settings.Value.Issuer;
+            var audience = _settings.Value.Audience;
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
             {
-                return Ok(true);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = securityKey
+                }, out SecurityToken validatedToken);
             }
-            return Ok(false);
+            catch
+            {
+                return Ok(false);
+            }
+            return Ok(true);
         }
     }
 }

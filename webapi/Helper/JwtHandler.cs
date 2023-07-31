@@ -74,7 +74,7 @@ namespace webapi.Helper
         private ClaimsPrincipal GetClaims(string Token)
         {
             var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadToken("Bearer " + Token) as JwtSecurityToken;
+            var token = handler.ReadToken(Token) as JwtSecurityToken;
 
             var claimsIdentity = new ClaimsIdentity(token?.Claims, "Token");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);

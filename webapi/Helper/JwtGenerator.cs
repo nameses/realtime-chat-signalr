@@ -20,6 +20,9 @@ namespace webapi.Helper
             var secret = _conf.Value.Key;
             var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
 
+            var issuer = _conf.Value.Issuer;
+            var audience = _conf.Value.Audience;
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -28,6 +31,8 @@ namespace webapi.Helper
                     new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 }),
                 Expires = DateTime.UtcNow.AddDays(1),
+                Issuer = issuer,
+                Audience = audience,
                 SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
             };
 
