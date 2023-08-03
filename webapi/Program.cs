@@ -97,12 +97,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+//app.UseWebSockets();
 
+app.UseCors(x => x.WithOrigins("https://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+app.UseHttpsRedirection();
 app.MapControllers();
 app.MapHub<ChatHub>("/chatsocket");
 

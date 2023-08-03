@@ -10,16 +10,19 @@ using webapi.Configuration;
 
 namespace webapi.Controllers
 {
+    [Route("api")]
     public class ValidationController : Controller
     {
         private readonly IOptions<JwtConfig> _settings;
+        private readonly ILogger<ValidationController> _logger;
 
-        public ValidationController(IOptions<JwtConfig> settings)
+        public ValidationController(IOptions<JwtConfig> settings, ILogger<ValidationController> logger)
         {
             _settings=settings;
+            _logger=logger;
         }
         [HttpGet]
-        [Route("Validate")]
+        [Route("validate")]
         public async Task<IActionResult> Validate(string token)
         {
             var secret = _settings.Value.Key;
@@ -43,7 +46,8 @@ namespace webapi.Controllers
             }
             catch
             {
-                return Ok(false);
+                _logger.LogWarning("Validation of jwt token failed.");
+                return BadRequest(false);
             }
             return Ok(true);
         }

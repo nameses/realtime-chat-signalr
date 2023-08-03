@@ -18,7 +18,7 @@ namespace webapi.Controllers
         }
         [HttpGet]
         [Authorize]
-        [Route("GetUserById/{id}")]
+        [Route("get/{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetById(id);

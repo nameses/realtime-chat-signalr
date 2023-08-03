@@ -46,7 +46,7 @@ namespace webapi.Helper
             var token = authorizationHeader.Substring("Bearer ".Length).Trim();
 
             // Call the API to validate the token
-            var response = await _httpClient.GetAsync($"https://localhost:7161/Validate?token={token}");
+            var response = await _httpClient.GetAsync($"https://localhost:7161/api/validate?token={token}");
 
             _logger.LogInformation(response.ToString());
             // Return an authentication failure if the response is not successful

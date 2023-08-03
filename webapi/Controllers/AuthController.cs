@@ -6,6 +6,7 @@ using webapi.Services;
 
 namespace webapi.Controllers
 {
+    [Route("api/auth")]
     public class AuthController : Controller
     {
         private readonly IUserService _userService;
@@ -20,7 +21,7 @@ namespace webapi.Controllers
         }
 
         [HttpPost]
-        [Route("Register")]
+        [Route("register")]
         public async Task<IActionResult> Register([FromBody] User userModel)
         {
             var createdId = await _userService.CreateAsync(userModel);
@@ -34,7 +35,7 @@ namespace webapi.Controllers
         }
 
         [HttpPost]
-        [Route("Login")]
+        [Route("login")]
         public async Task<IActionResult> Login([FromBody] User user)
         {
             var dbUser = await _userService.GetByUsername(user.Username);
@@ -54,7 +55,7 @@ namespace webapi.Controllers
 
             HttpContext.Response.Cookies.Append("auth_token", token);
 
-            return Ok();
+            return Ok(new { Id=dbUser.Id,Username=dbUser.Username, Token=token});
         }
     }
 }
