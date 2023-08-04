@@ -25,7 +25,10 @@
               <div *ngIf="f['password'].errors['required']">Password is required</div>
             </div>
           </div>
-          <button type="submit" class="w-full btn text-white bg-blue-500 py-2 rounded-xl">Login</button>
+          <button type="submit" [disabled]="loading" class="w-full btn text-white bg-blue-500 py-2 rounded-xl">
+            <span *ngIf="!loading">Login</span>
+            <span *ngIf="loading">Loading...</span>
+          </button>
           <p class="text-sm font-light ">
             Don't have an account yet? <a (click)="openSignUpComponent()" class="font-medium text-primary-600 hover:underline">Sign up</a>
           </p>
