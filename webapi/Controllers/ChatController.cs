@@ -10,10 +10,12 @@ namespace webapi.Controllers
     public class ChatController : Controller
     {
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly MessageSaverService _messageSaver;
 
-        public ChatController(IHubContext<ChatHub> hubContext)
+        public ChatController(IHubContext<ChatHub> hubContext, MessageSaverService messageSaver)
         {
             _hubContext = hubContext;
+            _messageSaver=messageSaver;
         }
 
         [Route("send")]
@@ -21,6 +23,7 @@ namespace webapi.Controllers
         [Authorize]
         public async Task<IActionResult> SendRequest([FromBody] ChatMessage msg)
         {
+            await _messageSaver.AddMessageAsync(msg);
             await _hubContext.Clients.All.SendAsync("ReceiveOne", msg.user, msg.msgText);
             return Ok();
         }

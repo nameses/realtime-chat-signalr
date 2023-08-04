@@ -17,6 +17,7 @@ var configuration = new ConfigurationBuilder()
     .Build();
 builder.Services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
 builder.Services.Configure<PasswordEncryption>(configuration.GetSection("PasswordEncryption"));
+builder.Services.Configure<MessagesPath>(configuration.GetSection("MessagesPath"));
 var connString = configuration.GetSection("ConnectionStrings")["SqlConnection"];
 
 builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
@@ -29,6 +30,7 @@ builder.Services.AddTransient<JwtGenerator>();
 builder.Services.AddSingleton(UrlEncoder.Default);
 builder.Services.AddSingleton<ISystemClock, SystemClock>();
 builder.Services.AddSingleton<Encrypter>();
+builder.Services.AddSingleton<MessageSaverService>();
 
 builder.Services.AddHttpClient();
 //DbContext
