@@ -24,7 +24,7 @@ export class AppComponent implements OnInit {
     private chatService: ChatService, 
     private dialog: MatDialog, 
     private modalService: ModalService,
-    private accountService:AccountService
+    public accountService:AccountService
     ) {}
 
   ngOnInit(): void {
@@ -33,6 +33,9 @@ export class AppComponent implements OnInit {
       .subscribe((receivedObj: ChatMessage) => {
         this.addToInbox(receivedObj);
       }); // calls the service method to get the new messages sent
+
+    if(this.accountService.userValue!=null)
+      return;
 
     this.openLoginDialog();
 
@@ -55,16 +58,19 @@ export class AppComponent implements OnInit {
         window.alert('Text field is empty!');
         return;
       } else {
-        this.chatService.broadcastMessage(this.msgDto); // Send the message via a service
+        if(this.accountService.userValue!=null){
+          this.msgDto.user = this.accountService.userValue.username;
+      
+          this.chatService.broadcastMessage(this.msgDto); // Send the message via a service
+        }
       }
     }
   }
 
   addToInbox(obj: ChatMessage) {
     let newObj = new ChatMessage();
-    const username = this.accountService.userValue?.username;
 
-    if(username) newObj.user = username;
+    newObj.user = obj.user;
     newObj.msgText = obj.msgText;
 
     this.msgInboxArray.push(newObj);
@@ -126,5 +132,9 @@ export class AppComponent implements OnInit {
     if (this.currentModalRef) {
       this.currentModalRef.close();
     }
+  }
+
+  logout():void{
+    this.accountService.logout();
   }
 }
