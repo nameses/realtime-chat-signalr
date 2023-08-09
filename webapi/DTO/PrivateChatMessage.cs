@@ -1,8 +1,9 @@
 ﻿namespace webapi.DTO
 {
-    public class ChatMessage
+    public class PrivateChatMessage
     {
         public string user { get; set; }
         public string msgText { get; set; }
+        public string? receiverConnectionId { get; set; }
     }
 }

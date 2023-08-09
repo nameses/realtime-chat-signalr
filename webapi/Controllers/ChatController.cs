@@ -24,7 +24,17 @@ namespace webapi.Controllers
         public async Task<IActionResult> SendRequest([FromBody] ChatMessage msg)
         {
             await _messageSaver.AddMessageAsync(msg);
-            await _hubContext.Clients.All.SendAsync("ReceiveOne", msg.user, msg.msgText);
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", msg.user, msg.msgText);
+            return Ok();
+        }
+
+        [Route("send/private")]
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> SendRequest([FromBody] PrivateChatMessage msg)
+        {
+            //await _messageSaver.AddMessageAsync(msg);
+            await _hubContext.Clients.Client(msg.receiverConnectionId).SendAsync("ReceiveMessage", msg.user, msg.msgText);
             return Ok();
         }
     }

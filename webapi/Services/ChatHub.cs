@@ -7,8 +7,15 @@ namespace webapi.Services
     {
         public async Task SendMessage(string user, string message)
         {
-            await Clients.All.SendAsync("ReceiveOne", user, message);
+            await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
+        
+        public Task SendToUser(string user, string receiverConnectionId, string message)
+        {
+            return Clients.Client(receiverConnectionId).SendAsync("ReceivePrivateMessage", user, message);
+        }
+
+        public string GetConnectionId() => Context.ConnectionId;
 
         //public async Task BroadcastAsync(ChatMessage message)
         //{

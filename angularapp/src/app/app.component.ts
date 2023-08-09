@@ -18,6 +18,8 @@ export class AppComponent implements OnInit {
   msgDto: ChatMessage = new ChatMessage();
   msgInboxArray: ChatMessage[] = [];
 
+  receiverConnectionId:string|undefined;
+
   private currentModalRef: MatDialogRef<any> | undefined;
 
   constructor(
@@ -60,8 +62,13 @@ export class AppComponent implements OnInit {
       } else {
         if(this.accountService.userValue!=null){
           this.msgDto.user = this.accountService.userValue.username;
-      
-          this.chatService.broadcastMessage(this.msgDto); // Send the message via a service
+          
+          if(this.receiverConnectionId && this.receiverConnectionId.trim() !== ''){
+            this.chatService.sendMessageToUser(this.msgDto,this.receiverConnectionId);
+          }
+          else {
+            this.chatService.broadcastMessage(this.msgDto);
+          }
         }
       }
     }
