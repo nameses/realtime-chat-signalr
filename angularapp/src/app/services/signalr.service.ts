@@ -28,6 +28,9 @@ export class ChatService {
     this.connection.on('ReceiveMessage', (user: string, message: string) => {
       this.mapReceivedMessage(user, message);
     });
+    this.connection.on('ReceivePrivateMessage',(user:string,message:string,receiverConnectionId:string) => {
+      this.mapReceivedMessage(user, message, true);
+    })
     this.start();
   }
 
@@ -46,9 +49,11 @@ export class ChatService {
     });
   }
 
-  private mapReceivedMessage(user: string, message: string): void {
+  private mapReceivedMessage(user: string, message: string, ifPrivate?: boolean): void {
     this.receivedMessageObject.user = user;
     this.receivedMessageObject.msgText = message;
+    if(ifPrivate) this.receivedMessageObject.ifPrivate = ifPrivate;
+
     this.sharedObj.next(this.receivedMessageObject);
   }
 

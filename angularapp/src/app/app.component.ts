@@ -79,6 +79,7 @@ export class AppComponent implements OnInit {
 
     newObj.user = obj.user;
     newObj.msgText = obj.msgText;
+    if(obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
 
     this.msgInboxArray.push(newObj);
   }

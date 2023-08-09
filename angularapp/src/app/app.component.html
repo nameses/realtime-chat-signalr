@@ -9,7 +9,7 @@
       [ngClass]="mObj.user === msgDto.user ? 'in-msg' : 'ex-msg'">
         <div class="w-auto pl-3 py-2">
           <div class="text-sm">
-            {{mObj.user}}
+            {{mObj.user}}<span *ngIf="mObj.ifPrivate==true">(private)</span>
           </div>
           <div class="text-lg font-normal">
             {{mObj.msgText}}
