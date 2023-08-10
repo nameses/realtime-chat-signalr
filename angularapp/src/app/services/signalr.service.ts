@@ -19,7 +19,7 @@ export class ChatService {
   private receivedMessageObject: ChatMessage = new ChatMessage();
   private sharedObj = new Subject<ChatMessage>();
 
-  private connectionId:string|undefined;
+  private connectionId: string | undefined;
 
   constructor(private http: HttpClient) {
     this.connection.onclose(async () => {
@@ -28,9 +28,12 @@ export class ChatService {
     this.connection.on('ReceiveMessage', (user: string, message: string) => {
       this.mapReceivedMessage(user, message);
     });
-    this.connection.on('ReceivePrivateMessage',(user:string,message:string,receiverConnectionId:string) => {
-      this.mapReceivedMessage(user, message, true);
-    })
+    this.connection.on(
+      'ReceivePrivateMessage',
+      (user: string, message: string, receiverConnectionId: string) => {
+        this.mapReceivedMessage(user, message, true);
+      }
+    );
     this.start();
   }
 
@@ -43,31 +46,34 @@ export class ChatService {
       console.log(err);
       setTimeout(() => this.start(), 5000);
     }
-    this.connection.invoke("GetConnectionID").then((id:any) => {
+    this.connection.invoke('GetConnectionID').then((id: any) => {
       this.connectionId = id;
-      console.log("connection id = " + this.connectionId);
+      console.log('connection id = ' + this.connectionId);
     });
   }
 
-  private mapReceivedMessage(user: string, message: string, ifPrivate?: boolean): void {
+  private mapReceivedMessage(
+    user: string,
+    message: string,
+    ifPrivate?: boolean
+  ): void {
     this.receivedMessageObject.user = user;
     this.receivedMessageObject.msgText = message;
-    if(ifPrivate) this.receivedMessageObject.ifPrivate = ifPrivate;
+    if (ifPrivate) this.receivedMessageObject.ifPrivate = ifPrivate;
 
     this.sharedObj.next(this.receivedMessageObject);
   }
 
-
-  public sendMessageToUser(msgDto:ChatMessage, receiverConnectionId:string ){
+  public sendMessageToUser(msgDto: ChatMessage, receiverConnectionId: string) {
     console.log('private message to user ' + receiverConnectionId);
     console.log(msgDto);
     this.http
       .post(this.POST_PRIVATE_URL, {
         user: msgDto.user,
         msgText: msgDto.msgText,
-        receiverConnectionId: receiverConnectionId
-    })
-      .subscribe((data)=>console.log(data));
+        receiverConnectionId: receiverConnectionId,
+      })
+      .subscribe((data) => console.log(data));
   }
 
   public broadcastMessage(msgDto: ChatMessage) {

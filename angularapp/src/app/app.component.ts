@@ -15,29 +15,18 @@ import { AccountService } from './services/account.service';
 })
 export class AppComponent implements OnInit {
   title = 'real-time-chat';
-  msgDto: ChatMessage = new ChatMessage();
-  msgInboxArray: ChatMessage[] = [];
-
-  receiverConnectionId:string|undefined;
 
   private currentModalRef: MatDialogRef<any> | undefined;
 
   constructor(
-    private chatService: ChatService, 
-    private dialog: MatDialog, 
+    private chatService: ChatService,
+    private dialog: MatDialog,
     private modalService: ModalService,
-    public accountService:AccountService
-    ) {}
+    public accountService: AccountService
+  ) {}
 
   ngOnInit(): void {
-    this.chatService
-      .retrieveMappedObject()
-      .subscribe((receivedObj: ChatMessage) => {
-        this.addToInbox(receivedObj);
-      }); // calls the service method to get the new messages sent
-
-    if(this.accountService.userValue!=null)
-      return;
+    if (this.accountService.userValue != null) return;
 
     this.openLoginDialog();
 
@@ -52,36 +41,6 @@ export class AppComponent implements OnInit {
     this.modalService.closeModal$.subscribe(() => {
       this.closeModalWindow();
     });
-  }
-
-  send(): void {
-    if (this.msgDto) {
-      if (this.msgDto.msgText.length == 0) {
-        window.alert('Text field is empty!');
-        return;
-      } else {
-        if(this.accountService.userValue!=null){
-          this.msgDto.user = this.accountService.userValue.username;
-          
-          if(this.receiverConnectionId && this.receiverConnectionId.trim() !== ''){
-            this.chatService.sendMessageToUser(this.msgDto,this.receiverConnectionId);
-          }
-          else {
-            this.chatService.broadcastMessage(this.msgDto);
-          }
-        }
-      }
-    }
-  }
-
-  addToInbox(obj: ChatMessage) {
-    let newObj = new ChatMessage();
-
-    newObj.user = obj.user;
-    newObj.msgText = obj.msgText;
-    if(obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
-
-    this.msgInboxArray.push(newObj);
   }
 
   openLoginDialog(): void {
@@ -101,7 +60,7 @@ export class AppComponent implements OnInit {
 
   openLogin(): void {
     this.currentModalRef = this.dialog.open(LoginFormComponent, {
-      disableClose: true
+      disableClose: true,
     });
 
     this.currentModalRef.afterClosed().subscribe((result: any) => {
@@ -142,7 +101,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  logout():void{
+  logout(): void {
     this.accountService.logout();
   }
 }

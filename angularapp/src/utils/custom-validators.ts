@@ -1,5 +1,4 @@
-import { AbstractControl, ValidatorFn } from "@angular/forms";
-
+import { AbstractControl, ValidatorFn } from '@angular/forms';
 
 export default class CustomValidators {
   static match(controlName: string, matchControlName: string): ValidatorFn {
@@ -11,8 +10,8 @@ export default class CustomValidators {
         matchControl?.setErrors({
           matching: {
             actualValue: matchControl?.value,
-            requiredValue: control?.value
-          }
+            requiredValue: control?.value,
+          },
         });
         return { matching: true };
       }

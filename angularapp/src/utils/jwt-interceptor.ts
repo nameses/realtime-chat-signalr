@@ -9,19 +9,22 @@ import { Observable } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class JwtInterceptor implements HttpInterceptor  {
-  constructor(private accountService:AccountService) { }
+export class JwtInterceptor implements HttpInterceptor {
+  constructor(private accountService: AccountService) {}
 
-  intercept ( request: HttpRequest<any>, next: HttpHandler ): Observable<HttpEvent<any>> {
+  intercept(
+    request: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
     const token = this.getJwtToken();
 
     if (token) {
       request = request.clone({
         setHeaders: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
+          Authorization: 'Bearer ' + token,
         },
       });
       console.log(request);
@@ -30,7 +33,7 @@ export class JwtInterceptor implements HttpInterceptor  {
     return next.handle(request);
   }
 
-  private getJwtToken(): string|undefined {
+  private getJwtToken(): string | undefined {
     return this.accountService.userValue?.token;
   }
 }
