@@ -14,10 +14,32 @@ import { GlobalChatComponent } from './components/global-chat/global-chat.compon
 import { Routes, RouterModule } from '@angular/router';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { HomeComponent } from './components/home/home.component';
+import { UsersListComponent } from './components/users-list/users-list.component';
+import { PrivateChatComponent } from './components/private-chat/private-chat.component';
+import { canActivate, canActivateLogin } from './auth.guard';
 
 const appRoutes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'global-chat', component: GlobalChatComponent },
+  { path: '', component: HomeComponent, canActivate: [canActivate] },
+  {
+    path: 'login',
+    component: LoginFormComponent,
+    canActivate: [canActivateLogin],
+  },
+  {
+    path: 'register',
+    component: RegFormComponent,
+    canActivate: [canActivateLogin],
+  },
+  {
+    path: 'global-chat',
+    component: GlobalChatComponent,
+    canActivate: [canActivate],
+  },
+  {
+    path: 'users-list',
+    component: UsersListComponent,
+    canActivate: [canActivate],
+  },
   { path: '**', component: NotFoundComponent },
 ];
 
@@ -29,6 +51,8 @@ const appRoutes: Routes = [
     GlobalChatComponent,
     NotFoundComponent,
     HomeComponent,
+    UsersListComponent,
+    PrivateChatComponent,
   ],
   imports: [
     BrowserModule,

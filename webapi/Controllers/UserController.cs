@@ -27,5 +27,17 @@ namespace webapi.Controllers
 
             return Ok(user);
         }
+
+        [HttpGet]
+        [Authorize]
+        [Route("get")]
+        public async Task<IActionResult> GetConnectedUsers()
+        {
+            var userList = await _userService.GetConnectedUsers();
+
+            if (userList==null) return NotFound();
+
+            return Ok(userList);
+        }
     }
 }

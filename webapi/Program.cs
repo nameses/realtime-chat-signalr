@@ -25,6 +25,7 @@ builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Confi
 builder.Services.AddControllers();
 //services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOnlineUserRepository, OnlineUserRepository>();
 builder.Services.AddTransient<JwtHandler>();
 builder.Services.AddTransient<JwtGenerator>();
 builder.Services.AddSingleton(UrlEncoder.Default);

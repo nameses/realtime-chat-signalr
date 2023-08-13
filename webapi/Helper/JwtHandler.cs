@@ -9,6 +9,7 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authentication;
+using System.Net;
 
 namespace webapi.Helper
 {
@@ -34,6 +35,7 @@ namespace webapi.Helper
             //get token from Authorization header
             if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
             {
+                Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 return AuthenticateResult.Fail("Authorization header not found.");
             }
 

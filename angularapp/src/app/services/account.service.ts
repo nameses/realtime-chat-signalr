@@ -21,6 +21,10 @@ export class AccountService {
     return this.userSubject.value;
   }
 
+  public get isLoggedIn() {
+    return this.userValue != null;
+  }
+
   register(username: string, password: string) {
     return this.http
       .post<User>(`${environment.apiUrl}/auth/register`, { username, password })

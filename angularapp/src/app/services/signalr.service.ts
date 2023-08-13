@@ -5,6 +5,9 @@ import { Observable, Subject, from } from 'rxjs';
 import { connect, tap } from 'rxjs/operators';
 import { ChatMessage } from '../models/chatMessage';
 import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
+import { AccountService } from './account.service';
+import { MsgType } from '../models/msgtype';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -21,26 +24,41 @@ export class ChatService {
 
   private connectionId: string | undefined;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private accountService: AccountService
+  ) {
     this.connection.onclose(async () => {
       await this.start();
     });
     this.connection.on('ReceiveMessage', (user: string, message: string) => {
-      this.mapReceivedMessage(user, message);
+      this.mapReceivedMessage(user, MsgType.Text, message, false);
     });
     this.connection.on(
       'ReceivePrivateMessage',
       (user: string, message: string, receiverConnectionId: string) => {
-        this.mapReceivedMessage(user, message, true);
+        this.mapReceivedMessage(user, MsgType.Text, message, true);
       }
     );
+    this.connection.on('NewUserConnected', (user: string) => {
+      this.mapReceivedMessage(user, MsgType.NewUserConnected);
+    });
     this.start();
   }
 
   // Starrt the connection
   public async start() {
     try {
-      await this.connection.start();
+      await this.connection
+        .start()
+        .then(() => {
+          // Once connected, you can send additional data to the OnConnectedAsync method
+          this.connection.invoke(
+            'OnConnectedWithUsername',
+            this.accountService.userValue?.username
+          );
+        })
+        .catch((err: any) => console.error(err));
       console.log('Successfully connected.');
     } catch (err) {
       console.log(err);
@@ -54,11 +72,13 @@ export class ChatService {
 
   private mapReceivedMessage(
     user: string,
-    message: string,
+    msgType: MsgType,
+    message?: string,
     ifPrivate?: boolean
   ): void {
     this.receivedMessageObject.user = user;
-    this.receivedMessageObject.msgText = message;
+    this.receivedMessageObject.msgType = msgType;
+    if (message) this.receivedMessageObject.msgText = message;
     if (ifPrivate) this.receivedMessageObject.ifPrivate = ifPrivate;
 
     this.sharedObj.next(this.receivedMessageObject);

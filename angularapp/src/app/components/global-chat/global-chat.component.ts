@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ChatMessage } from 'src/app/models/chatMessage';
+import { MsgType } from 'src/app/models/msgtype';
 import { AccountService } from 'src/app/services/account.service';
-import { ModalService } from 'src/app/services/modal.service';
 import { ChatService } from 'src/app/services/signalr.service';
 
 @Component({
@@ -11,6 +11,10 @@ import { ChatService } from 'src/app/services/signalr.service';
   styleUrls: ['./global-chat.component.css'],
 })
 export class GlobalChatComponent implements OnInit {
+  public get msgType(): typeof MsgType {
+    return MsgType;
+  }
+
   title = 'global chat';
   msgDto: ChatMessage = new ChatMessage();
   msgInboxArray: ChatMessage[] = [];
@@ -19,7 +23,6 @@ export class GlobalChatComponent implements OnInit {
   constructor(
     private chatService: ChatService,
     private dialog: MatDialog,
-    private modalService: ModalService,
     public accountService: AccountService
   ) {}
 
@@ -62,10 +65,13 @@ export class GlobalChatComponent implements OnInit {
   addToInbox(obj: ChatMessage) {
     let newObj = new ChatMessage();
 
-    newObj.user = obj.user;
-    newObj.msgText = obj.msgText;
-    if (obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
-
+    if (obj.msgType == MsgType.Text) {
+      newObj.user = obj.user;
+      newObj.msgText = obj.msgText;
+      if (obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
+    } else if (obj.msgType == MsgType.NewUserConnected) {
+      newObj.user = obj.user;
+    }
     this.msgInboxArray.push(newObj);
   }
 }

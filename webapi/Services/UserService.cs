@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using webapi.Context;
+using webapi.DTO;
 using webapi.Entities;
 using webapi.Helper;
 
@@ -10,17 +11,20 @@ namespace webapi.Services
     {
         Task<User?> GetByUsername(string username);
         Task<User?> GetById(int id);
+        Task<List<UsernameConnectionMapping>?> GetConnectedUsers();
         Task<int?> CreateAsync(User user);
     }
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
+        private readonly IOnlineUserRepository _repository;
         private readonly ILogger<UserService> _logger;
         private readonly Encrypter _encrypter;
 
-        public UserService(AppDbContext context, ILogger<UserService> logger,Encrypter encrypter)
+        public UserService(AppDbContext context,IOnlineUserRepository repository, ILogger<UserService> logger, Encrypter encrypter)
         {
             _context=context;
+            _repository=repository;
             _logger=logger;
             _encrypter=encrypter;
         }
@@ -49,6 +53,20 @@ namespace webapi.Services
 
             _logger.LogInformation($"User(id={id}) successfully found in DB");
             return user;
+        }
+
+        public async Task<List<UsernameConnectionMapping>?> GetConnectedUsers()
+        {
+            var users = _repository.GetAllUsernames();
+
+            if (users==null || users.Count==0)
+            {
+                _logger.LogInformation($"Connected users not found ");
+                return null;
+            }
+
+            _logger.LogInformation($"Connected users successfully found ");
+            return users;
         }
 
         public async Task<int?> CreateAsync(User user)
