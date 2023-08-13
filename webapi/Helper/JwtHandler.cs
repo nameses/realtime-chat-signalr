@@ -29,23 +29,58 @@ namespace webapi.Helper
             _httpClient = httpClient;
             _logger=logger;
         }
+        private bool ShouldSkip(HttpContext context)
+        {
+            var excludedPaths = new[]
+            {
+                "/api/auth/register",
+                "/api/auth/login",
+                "/api/validate"
+            };
+            var requestPath = context.Request.Path;
+            return excludedPaths.Any(path => requestPath.StartsWithSegments(path));
+        }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            string? token;
+
+            if (ShouldSkip(Context)) return AuthenticateResult.NoResult();
+
+            //get token from query parameters
+            if (Context.Request.Path.StartsWithSegments("/chatsocket") ||
+                Context.Request.Path.StartsWithSegments("/chatsocket/negotiate"))
+            {
+                if (!Context.Request.Query.TryGetValue("access_token", out var tokenValues))
+                {
+                    Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return AuthenticateResult.Fail("ID not found in query parameters.");
+                }
+
+                token = tokenValues.FirstOrDefault();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return AuthenticateResult.Fail("ID not found in query parameters.");
+                }
+            }
             //get token from Authorization header
-            if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
+            else
             {
-                Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                return AuthenticateResult.Fail("Authorization header not found.");
-            }
+                if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
+                {
+                    Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return AuthenticateResult.Fail("Authorization header not found.");
+                }
 
-            var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
-            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-            {
-                return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
-            }
+                var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
+                if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
+                {
+                    return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
+                }
 
-            var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                token = authorizationHeader.Substring("Bearer ".Length).Trim();
+            }
 
             // Call the API to validate the token
             var response = await _httpClient.GetAsync($"https://localhost:7161/api/validate?token={token}");

@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { ChatMessage } from 'src/app/models/chatMessage';
 import { MsgType } from 'src/app/models/msgtype';
 import { AccountService } from 'src/app/services/account.service';
@@ -22,7 +21,6 @@ export class GlobalChatComponent implements OnInit {
 
   constructor(
     private chatService: ChatService,
-    private dialog: MatDialog,
     public accountService: AccountService
   ) {}
 

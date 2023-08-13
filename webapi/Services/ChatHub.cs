@@ -23,10 +23,10 @@ namespace webapi.Services
 
         public string GetConnectionId() => Context.ConnectionId;
 
-        public override async Task OnConnectedAsync()
+        public async Task OnConnectedWithUsername(string username)
         {
             string сonnectionId = Context.ConnectionId;
-            string username = Context.GetHttpContext().Request.Query["username"];
+            //string username = Context.GetHttpContext().Request.Query["username"];
 
             //add new user to current context
             if(username!=null && сonnectionId!=null)

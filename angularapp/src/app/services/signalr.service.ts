@@ -12,10 +12,7 @@ import { MsgType } from '../models/msgtype';
   providedIn: 'root',
 })
 export class ChatService {
-  private connection: any = new signalR.HubConnectionBuilder()
-    .withUrl('https://localhost:7161/chatsocket') // mapping to the chathub as in startup.cs
-    .configureLogging(signalR.LogLevel.Information)
-    .build();
+  private connection: any;
   readonly POST_URL = 'https://localhost:7161/api/chat/send';
   readonly POST_PRIVATE_URL = 'https://localhost:7161/api/chat/send/private';
 
@@ -24,10 +21,28 @@ export class ChatService {
 
   private connectionId: string | undefined;
 
+  private getJwtToken(): string {
+    console.log(this.accountService.userValue?.token);
+    if (this.accountService.userValue?.token)
+      return this.accountService.userValue.token;
+    throw Error();
+  }
+
   constructor(
     private http: HttpClient,
     private accountService: AccountService
   ) {
+    // this.start();
+  }
+
+  public init() {
+    const connectionUrl = 'https://localhost:7161/chatsocket';
+
+    this.connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${connectionUrl}?access_token=${this.getJwtToken()}`)
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
     this.connection.onclose(async () => {
       await this.start();
     });
@@ -43,16 +58,18 @@ export class ChatService {
     this.connection.on('NewUserConnected', (user: string) => {
       this.mapReceivedMessage(user, MsgType.NewUserConnected);
     });
+
     this.start();
   }
 
-  // Starrt the connection
+  // Start the connection
   public async start() {
     try {
       await this.connection
         .start()
         .then(() => {
           // Once connected, you can send additional data to the OnConnectedAsync method
+          console.log(this.connection);
           this.connection.invoke(
             'OnConnectedWithUsername',
             this.accountService.userValue?.username
