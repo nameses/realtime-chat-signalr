@@ -29,11 +29,9 @@
       <!-- new user connected message -->
       <div
         *ngIf="mObj.msgType === msgType.NewUserConnected"
-        class="flex flex-col justify-center bg-blue-300 rounded-br-3xl rounded-tr-3xl rounded-tl-xl mb-3"
+        class="flex justify-center bg-blue-300 rounded-3xl mb-3 py-2 text-lg font-normal"
       >
-        <div class="w-auto pl-3 py-2">
-          <div class="text-lg font-normal">{{ mObj.user }} connected.</div>
-        </div>
+        {{ mObj.user }} connected.
       </div>
     </div>
   </div>

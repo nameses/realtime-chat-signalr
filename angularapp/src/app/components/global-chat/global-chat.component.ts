@@ -63,12 +63,14 @@ export class GlobalChatComponent implements OnInit {
   addToInbox(obj: ChatMessage) {
     let newObj = new ChatMessage();
 
+    newObj.user = obj.user;
+    newObj.msgType = obj.msgType;
+
     if (obj.msgType == MsgType.Text) {
-      newObj.user = obj.user;
       newObj.msgText = obj.msgText;
       if (obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
-    } else if (obj.msgType == MsgType.NewUserConnected) {
-      newObj.user = obj.user;
+    }
+    if (obj.msgType == MsgType.NewUserConnected) {
     }
     this.msgInboxArray.push(newObj);
   }
