@@ -93,23 +93,35 @@ namespace webapi.Services
             _db.KeyDelete(USERNAME_KEY + username);
         }
 
-        public void RemoveByConnectionId(string connectionId)
+        public async Task RemoveByConnectionIdAsync(string connectionId)
         {
-            //var username = GetUsernameByConnectionId(connectionId);
+            var username = await GetUsernameByConnectionId(connectionId);
 
-            //if (!string.IsNullOrEmpty(username))
-            //{
-            //    // Remove the key-value pair using the username
-            //    _db.KeyDelete(username);
+            if (!string.IsNullOrEmpty(username))
+            {
+                // Remove the key-value pair using the username
+                _db.KeyDelete(USERNAME_KEY + username);
+                try
+                {
+                    _db.StringGet(USERNAME_KEY + username);
+                }
+                catch (Exception ex) 
+                { 
+                    _logger.LogInformation($"Key for username: {username} still in db."); 
+                }
 
-            //    // Clean up the secondary index set
-            //    //_db.SetRemove("connectionids:index", connectionId);
-            //}
+                // Clean up the secondary index set
+                //_db.SetRemove("connectionids:index", connectionId);
+            }
         }
-        public string GetUsernameByConnectionId(string connectionId)
+        public async Task<string> GetUsernameByConnectionId(string connectionId)
         {
             //return _db.StringGet(connectionId);
-            return null;
+
+            var list = await GetAllUsersAsync();
+            var foundUsername = list.FirstOrDefault(pair => pair.ConnectionId==connectionId)?.Username;
+
+            return foundUsername!;
         }
         public string GetConnectionId(string username)
         {

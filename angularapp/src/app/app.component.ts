@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ChatService } from './services/signalr.service';
 import { ChatMessage } from './models/chatMessage';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -22,5 +22,21 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.accountService.userValue != null) return;
+
+    // Listen for window/tab close event
+    this.handleWindowClose();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    // Notify SignalR hub about client disconnecting
+    this.chatService.onDisconnect();
+  }
+
+  private handleWindowClose() {
+    window.addEventListener('beforeunload', () => {
+      // Notify SignalR hub about client disconnecting
+      this.chatService.onDisconnect();
+    });
   }
 }

@@ -17,7 +17,6 @@ export class GlobalChatComponent implements OnInit {
 
   title = 'global chat';
   msgDto: ChatMessage = new ChatMessage();
-  //msgInboxArray: ChatMessage[] = [];
 
   constructor(
     private chatService: ChatService,
@@ -25,13 +24,7 @@ export class GlobalChatComponent implements OnInit {
     public globalChatService: GlobalChatService
   ) {}
 
-  ngOnInit(): void {
-    // this.chatService
-    //   .retrieveMappedObject()
-    //   .subscribe((receivedObj: ChatMessage) => {
-    //     this.addToInbox(receivedObj);
-    //   }); // calls the service method to get the new messages sent
-  }
+  ngOnInit(): void {}
 
   send(): void {
     if (this.msgDto) {
@@ -52,18 +45,6 @@ export class GlobalChatComponent implements OnInit {
   }
 
   addToInbox(obj: ChatMessage) {
-    // let newObj = new ChatMessage();
-
-    // newObj.user = obj.user;
-    // newObj.msgType = obj.msgType;
-
-    // if (obj.msgType == MsgType.Text) {
-    //   newObj.msgText = obj.msgText;
-    //   if (obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
-    // }
-    // if (obj.msgType == MsgType.NewUserConnected) {
-    // }
-    // this.msgInboxArray.push(newObj);
     this.globalChatService.addToInbox(obj);
   }
 }
