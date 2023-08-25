@@ -1,8 +1,9 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { ModalService } from '../../services/modal.service';
 import { AccountService } from '../../services/account.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
+import { Route, Router } from '@angular/router';
+import { ChatService } from 'src/app/services/signalr.service';
 
 @Component({
   selector: 'app-login-form',
@@ -16,9 +17,10 @@ export class LoginFormComponent implements OnInit {
   error?: string;
 
   constructor(
-    private modalService: ModalService,
     private accountService: AccountService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private router: Router,
+    private chatService: ChatService
   ) {}
 
   ngOnInit() {
@@ -46,8 +48,9 @@ export class LoginFormComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: () => {
-          this.closeComponent();
-          console.log('Login successful:');
+          console.log('Login successful');
+          this.chatService.init();
+          this.router.navigateByUrl('');
         },
         error: (error) => {
           this.error = error.error;
@@ -58,11 +61,6 @@ export class LoginFormComponent implements OnInit {
   }
 
   openSignUpComponent() {
-    this.modalService.openSignUp();
-  }
-
-  closeComponent() {
-    console.log('Trying to close login component.');
-    this.modalService.closeComponent();
+    this.router.navigateByUrl('register');
   }
 }

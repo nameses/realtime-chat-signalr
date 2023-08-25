@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { User } from '../models/user';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class AccountService {
+export class AccountService implements OnInit {
   private userSubject: BehaviorSubject<User | null>;
   public user: Observable<User | null>;
 
@@ -16,9 +16,14 @@ export class AccountService {
     );
     this.user = this.userSubject.asObservable();
   }
+  ngOnInit(): void {}
 
   public get userValue() {
     return this.userSubject.value;
+  }
+
+  public get isLoggedIn() {
+    return this.userValue != null;
   }
 
   register(username: string, password: string) {

@@ -2,15 +2,15 @@
   <h1 class="flex-grow text-3xl font-bold mb-3 text-center">{{ title }}</h1>
   <button
     class="btn py-1 text-center text-white bg-blue-500 text-xl px-3 rounded-xl absolute right-0 top-0"
-    routerLink=""
+    routerLink="/users-list"
   >
     Back
   </button>
 </div>
-
-<div class="w-full px-5 flex flex-col h-96">
+<div>This is private chat with user {{ user?.username }}</div>
+<div class="w-full px-5 flex flex-col">
   <div class="flex flex-col mt-5">
-    <div *ngFor="let mObj of this.globalChatService.msgInboxArray">
+    <div *ngFor="let mObj of msgInboxArray">
       <!-- new message (public-private)-->
       <div
         *ngIf="mObj.msgType === msgType.Text"

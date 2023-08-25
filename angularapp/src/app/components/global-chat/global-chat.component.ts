@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { ChatMessage } from 'src/app/models/chatMessage';
+import { MsgType } from 'src/app/models/msgtype';
 import { AccountService } from 'src/app/services/account.service';
-import { ModalService } from 'src/app/services/modal.service';
+import { GlobalChatService } from 'src/app/services/global-chat.service';
 import { ChatService } from 'src/app/services/signalr.service';
 
 @Component({
@@ -11,24 +11,26 @@ import { ChatService } from 'src/app/services/signalr.service';
   styleUrls: ['./global-chat.component.css'],
 })
 export class GlobalChatComponent implements OnInit {
+  public get msgType(): typeof MsgType {
+    return MsgType;
+  }
+
   title = 'global chat';
   msgDto: ChatMessage = new ChatMessage();
-  msgInboxArray: ChatMessage[] = [];
-  receiverConnectionId: string | undefined;
+  //msgInboxArray: ChatMessage[] = [];
 
   constructor(
     private chatService: ChatService,
-    private dialog: MatDialog,
-    private modalService: ModalService,
-    public accountService: AccountService
+    public accountService: AccountService,
+    public globalChatService: GlobalChatService
   ) {}
 
   ngOnInit(): void {
-    this.chatService
-      .retrieveMappedObject()
-      .subscribe((receivedObj: ChatMessage) => {
-        this.addToInbox(receivedObj);
-      }); // calls the service method to get the new messages sent
+    // this.chatService
+    //   .retrieveMappedObject()
+    //   .subscribe((receivedObj: ChatMessage) => {
+    //     this.addToInbox(receivedObj);
+    //   }); // calls the service method to get the new messages sent
   }
 
   send(): void {
@@ -40,17 +42,7 @@ export class GlobalChatComponent implements OnInit {
         if (this.accountService.userValue != null) {
           this.msgDto.user = this.accountService.userValue.username;
 
-          if (
-            this.receiverConnectionId &&
-            this.receiverConnectionId.trim() !== ''
-          ) {
-            this.chatService.sendMessageToUser(
-              this.msgDto,
-              this.receiverConnectionId
-            );
-          } else {
-            this.chatService.broadcastMessage(this.msgDto);
-          }
+          this.chatService.broadcastMessage(this.msgDto);
 
           //clear input element
           this.msgDto.msgText = '';
@@ -60,12 +52,18 @@ export class GlobalChatComponent implements OnInit {
   }
 
   addToInbox(obj: ChatMessage) {
-    let newObj = new ChatMessage();
+    // let newObj = new ChatMessage();
 
-    newObj.user = obj.user;
-    newObj.msgText = obj.msgText;
-    if (obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
+    // newObj.user = obj.user;
+    // newObj.msgType = obj.msgType;
 
-    this.msgInboxArray.push(newObj);
+    // if (obj.msgType == MsgType.Text) {
+    //   newObj.msgText = obj.msgText;
+    //   if (obj.ifPrivate) newObj.ifPrivate = obj.ifPrivate;
+    // }
+    // if (obj.msgType == MsgType.NewUserConnected) {
+    // }
+    // this.msgInboxArray.push(newObj);
+    this.globalChatService.addToInbox(obj);
   }
 }

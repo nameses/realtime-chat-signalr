@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { ModalService } from '../../services/modal.service';
 import { AccountService } from 'src/app/services/account.service';
 import {
   AbstractControl,
@@ -11,6 +10,7 @@ import {
 } from '@angular/forms';
 import { first } from 'rxjs/operators';
 import CustomValidators from 'src/utils/custom-validators';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-reg-form',
@@ -24,9 +24,9 @@ export class RegFormComponent {
   error?: string;
 
   constructor(
-    private modalService: ModalService,
     private accountService: AccountService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -72,11 +72,6 @@ export class RegFormComponent {
   }
 
   openLoginComponent() {
-    this.modalService.openLogin();
-  }
-
-  closeComponent() {
-    console.log('Trying to close sign up component.');
-    this.modalService.closeComponent();
+    this.router.navigateByUrl('login');
   }
 }

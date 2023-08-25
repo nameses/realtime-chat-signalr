@@ -11,10 +11,12 @@ namespace webapi.Controllers
     public class UserController : Controller
     {
         private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService,ILogger<UserController> logger)
         {
             _userService = userService;
+            _logger=logger;
         }
         [HttpGet]
         [Authorize]
@@ -26,6 +28,19 @@ namespace webapi.Controllers
             if (user==null) return NotFound();
 
             return Ok(user);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("get")]
+        public async Task<IActionResult> GetConnectedUsers()
+        {
+            //_logger.LogInformation();
+            var userList = await _userService.GetConnectedUsers();
+
+            if (userList==null) return NotFound();
+
+            return Ok(userList);
         }
     }
 }

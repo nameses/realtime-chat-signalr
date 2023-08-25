@@ -9,6 +9,7 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authentication;
+using System.Net;
 
 namespace webapi.Helper
 {
@@ -16,6 +17,7 @@ namespace webapi.Helper
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<JwtHandler> _logger;
+        private readonly string API_URL = "https://localhost:4403/api";
 
         public JwtHandler(HttpClient httpClient,
             ILogger<JwtHandler> logger,
@@ -28,27 +30,63 @@ namespace webapi.Helper
             _httpClient = httpClient;
             _logger=logger;
         }
+        private bool ShouldSkip(HttpContext context)
+        {
+            var excludedPaths = new[]
+            {
+                "/api/auth/register",
+                "/api/auth/login",
+                "/api/validate"
+            };
+            var requestPath = context.Request.Path;
+            return excludedPaths.Any(path => requestPath.StartsWithSegments(path));
+        }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            string? token;
+
+            if (ShouldSkip(Context)) return AuthenticateResult.NoResult();
+
+            //get token from query parameters
+            if (Context.Request.Path.StartsWithSegments("/chatsocket") ||
+                Context.Request.Path.StartsWithSegments("/chatsocket/negotiate"))
+            {
+                if (!Context.Request.Query.TryGetValue("access_token", out var tokenValues))
+                {
+                    Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return AuthenticateResult.Fail("ID not found in query parameters.");
+                }
+
+                token = tokenValues.FirstOrDefault();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return AuthenticateResult.Fail("ID not found in query parameters.");
+                }
+            }
             //get token from Authorization header
-            if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
+            else
             {
-                return AuthenticateResult.Fail("Authorization header not found.");
-            }
+                if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
+                {
+                    Context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return AuthenticateResult.Fail("Authorization header not found.");
+                }
 
-            var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
-            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-            {
-                return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
-            }
+                var authorizationHeader = authorizationHeaderValues.FirstOrDefault();
+                if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
+                {
+                    return AuthenticateResult.Fail("Bearer token not found in Authorization header.");
+                }
 
-            var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                token = authorizationHeader.Substring("Bearer ".Length).Trim();
+            }
 
             // Call the API to validate the token
-            var response = await _httpClient.GetAsync($"https://localhost:7161/api/validate?token={token}");
+            var response = await _httpClient.GetAsync(API_URL + $"/validate?token={token}");
 
-            _logger.LogInformation(response.ToString());
+            //_logger.LogInformation(response.ToString());
             // Return an authentication failure if the response is not successful
             if (!response.IsSuccessStatusCode)
             {
