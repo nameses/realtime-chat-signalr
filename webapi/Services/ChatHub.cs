@@ -5,8 +5,8 @@ namespace webapi.Services
 {
     public class ChatHub : Hub
     {
-        private readonly IOnlineUserRepository _repository;
-        public ChatHub(IOnlineUserRepository repository)
+        private readonly OnlineUserRepository _repository;
+        public ChatHub(OnlineUserRepository repository)
         {
             _repository = repository;
         }
@@ -16,9 +16,9 @@ namespace webapi.Services
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
         
-        public Task SendToUser(string user, string receiverConnectionId, string message)
+        public Task SendToUser(string user, string message, string receiverConnectionId, string receiverUsername)
         {
-            return Clients.Client(receiverConnectionId).SendAsync("ReceivePrivateMessage", user, message);
+            return Clients.Client(receiverConnectionId).SendAsync("ReceivePrivateMessage", user, message, receiverUsername);
         }
 
         public string GetConnectionId() => Context.ConnectionId;
@@ -30,7 +30,7 @@ namespace webapi.Services
 
             //add new user to current context
             if(username!=null && сonnectionId!=null)
-                _repository.AddOrUpdate(username, сonnectionId);
+                await _repository.AddOrUpdateAsync(username, сonnectionId);
 
             await Clients.All.SendAsync("NewUserConnected", username);
             await base.OnConnectedAsync();

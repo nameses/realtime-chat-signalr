@@ -8,9 +8,9 @@
   </button>
 </div>
 
-<div class="w-full px-5 flex flex-col">
+<div class="w-full px-5 flex flex-col h-96">
   <div class="flex flex-col mt-5">
-    <div *ngFor="let mObj of msgInboxArray">
+    <div *ngFor="let mObj of this.globalChatService.msgInboxArray">
       <!-- new message (public-private)-->
       <div
         *ngIf="mObj.msgType === msgType.Text"
@@ -19,7 +19,7 @@
       >
         <div class="w-auto pl-3 py-2">
           <div class="text-sm">
-            {{ mObj.user }}<span *ngIf="mObj.ifPrivate == true">(private)</span>
+            {{ mObj.user }}
           </div>
           <div class="text-lg font-normal">
             {{ mObj.msgText }}
@@ -49,14 +49,5 @@
     >
       <i class="fa fa-paper-plane"></i>
     </button>
-  </div>
-
-  <div>
-    <input
-      type="text"
-      placeholder="Receiver connection id"
-      class="rounded-xl"
-      [(ngModel)]="receiverConnectionId"
-    />
   </div>
 </div>

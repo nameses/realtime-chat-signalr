@@ -34,7 +34,7 @@ namespace webapi.Controllers
         public async Task<IActionResult> SendRequest([FromBody] PrivateChatMessage msg)
         {
             //await _messageSaver.AddMessageAsync(msg);
-            await _hubContext.Clients.Client(msg.receiverConnectionId).SendAsync("ReceivePrivateMessage", msg.user, msg.msgText);
+            await _hubContext.Clients.Client(msg.receiverConnectionId).SendAsync("ReceivePrivateMessage", msg.user, msg.msgText, msg.receiverUsername);
             return Ok();
         }
     }

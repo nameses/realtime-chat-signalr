@@ -40,6 +40,11 @@ const appRoutes: Routes = [
     component: UsersListComponent,
     canActivate: [canActivate],
   },
+  {
+    path: 'private-chat',
+    component: PrivateChatComponent,
+    canActivate: [canActivate],
+  },
   { path: '**', component: NotFoundComponent },
 ];
 

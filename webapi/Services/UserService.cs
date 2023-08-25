@@ -17,11 +17,11 @@ namespace webapi.Services
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
-        private readonly IOnlineUserRepository _repository;
+        private readonly OnlineUserRepository _repository;
         private readonly ILogger<UserService> _logger;
         private readonly Encrypter _encrypter;
 
-        public UserService(AppDbContext context,IOnlineUserRepository repository, ILogger<UserService> logger, Encrypter encrypter)
+        public UserService(AppDbContext context, OnlineUserRepository repository, ILogger<UserService> logger, Encrypter encrypter)
         {
             _context=context;
             _repository=repository;
@@ -57,7 +57,7 @@ namespace webapi.Services
 
         public async Task<List<UsernameConnectionMapping>?> GetConnectedUsers()
         {
-            var users = _repository.GetAllUsernames();
+            var users = await _repository.GetAllUsersAsync();
 
             if (users==null || users.Count==0)
             {

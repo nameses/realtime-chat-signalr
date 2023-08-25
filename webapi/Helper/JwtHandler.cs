@@ -17,6 +17,7 @@ namespace webapi.Helper
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<JwtHandler> _logger;
+        private readonly string API_URL = "https://localhost:4403/api";
 
         public JwtHandler(HttpClient httpClient,
             ILogger<JwtHandler> logger,
@@ -83,9 +84,9 @@ namespace webapi.Helper
             }
 
             // Call the API to validate the token
-            var response = await _httpClient.GetAsync($"https://localhost:7161/api/validate?token={token}");
+            var response = await _httpClient.GetAsync(API_URL + $"/validate?token={token}");
 
-            _logger.LogInformation(response.ToString());
+            //_logger.LogInformation(response.ToString());
             // Return an authentication failure if the response is not successful
             if (!response.IsSuccessStatusCode)
             {

@@ -1,4 +1,9 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { UserConnection } from 'src/app/models/userConnection';
+import { AccountService } from 'src/app/services/account.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-users-list',
@@ -7,10 +12,25 @@ import { Component, OnInit } from '@angular/core';
 })
 export class UsersListComponent implements OnInit {
   title: string = 'Users-list';
+  GET_URL: string = environment.apiUrl + '/user/get';
+  users: UserConnection[] = [];
 
-  constructor() {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    public accountService: AccountService
+  ) {}
 
   ngOnInit(): void {
-    throw new Error('Method not implemented.');
+    this.http
+      .get<UserConnection[]>(this.GET_URL)
+      .subscribe((data) => (this.users = data));
+  }
+
+  public navToPrivateChat(user: UserConnection) {
+    this.router.navigate(['/private-chat'], {
+      queryParams: { username: user.username, connectionId: user.connectionId },
+    });
+    // private chat with user
   }
 }

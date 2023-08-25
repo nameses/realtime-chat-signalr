@@ -19,19 +19,26 @@ builder.Services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
 builder.Services.Configure<PasswordEncryption>(configuration.GetSection("PasswordEncryption"));
 builder.Services.Configure<MessagesPath>(configuration.GetSection("MessagesPath"));
 var connString = configuration.GetSection("ConnectionStrings")["SqlConnection"];
-
+//log services
 builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
+////redis
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    options.InstanceName = "RedisInstance";
+//    options.Configuration = "localhost:6379";
+//});
+builder.Services.AddHttpClient();
 //controllers
 builder.Services.AddControllers();
 //services
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IOnlineUserRepository, OnlineUserRepository>();
 builder.Services.AddTransient<JwtHandler>();
 builder.Services.AddTransient<JwtGenerator>();
 builder.Services.AddSingleton(UrlEncoder.Default);
 builder.Services.AddSingleton<ISystemClock, SystemClock>();
 builder.Services.AddSingleton<Encrypter>();
 builder.Services.AddSingleton<MessageSaverService>();
+builder.Services.AddSingleton<OnlineUserRepository>();
 
 builder.Services.AddHttpClient();
 //DbContext

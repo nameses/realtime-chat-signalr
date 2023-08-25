@@ -7,14 +7,16 @@ import { ChatMessage } from '../models/chatMessage';
 import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
 import { AccountService } from './account.service';
 import { MsgType } from '../models/msgtype';
+import { UserConnection } from '../models/userConnection';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
   private connection: any;
-  readonly POST_URL = 'https://localhost:7161/api/chat/send';
-  readonly POST_PRIVATE_URL = 'https://localhost:7161/api/chat/send/private';
+  readonly POST_URL = environment.apiUrl + '/chat/send';
+  readonly POST_PRIVATE_URL = environment.apiUrl + '/chat/send/private';
 
   private receivedMessageObject: ChatMessage = new ChatMessage();
   private sharedObj = new Subject<ChatMessage>();
@@ -36,7 +38,7 @@ export class ChatService {
   }
 
   public init() {
-    const connectionUrl = 'https://localhost:7161/chatsocket';
+    const connectionUrl = environment.url + '/chatsocket';
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(`${connectionUrl}?access_token=${this.getJwtToken()}`)
@@ -51,8 +53,14 @@ export class ChatService {
     });
     this.connection.on(
       'ReceivePrivateMessage',
-      (user: string, message: string, receiverConnectionId: string) => {
-        this.mapReceivedMessage(user, MsgType.Text, message, true);
+      (user: string, message: string, receiverUsername: string) => {
+        this.mapReceivedMessage(
+          user,
+          MsgType.Text,
+          message,
+          true,
+          receiverUsername
+        );
       }
     );
     this.connection.on('NewUserConnected', (user: string) => {
@@ -91,24 +99,29 @@ export class ChatService {
     user: string,
     msgType: MsgType,
     message?: string,
-    ifPrivate?: boolean
+    ifPrivate?: boolean,
+    receiverUsername?: string
   ): void {
     this.receivedMessageObject.user = user;
     this.receivedMessageObject.msgType = msgType;
     if (message) this.receivedMessageObject.msgText = message;
-    if (ifPrivate) this.receivedMessageObject.ifPrivate = ifPrivate;
+    if (ifPrivate) {
+      this.receivedMessageObject.ifPrivate = ifPrivate;
+      this.receivedMessageObject.userReceiver = receiverUsername;
+    }
 
     this.sharedObj.next(this.receivedMessageObject);
   }
 
-  public sendMessageToUser(msgDto: ChatMessage, receiverConnectionId: string) {
-    console.log('private message to user ' + receiverConnectionId);
+  public sendMessageToUser(msgDto: ChatMessage, user: UserConnection) {
+    console.log('private message to user ' + user.connectionId);
     console.log(msgDto);
     this.http
       .post(this.POST_PRIVATE_URL, {
         user: msgDto.user,
         msgText: msgDto.msgText,
-        receiverConnectionId: receiverConnectionId,
+        receiverConnectionId: user.connectionId,
+        receiverUsername: user.username,
       })
       .subscribe((data) => console.log(data));
   }

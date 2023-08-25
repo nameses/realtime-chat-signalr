@@ -1,58 +1,119 @@
-﻿using webapi.DTO;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
+using System.Net.Http;
+using webapi.DTO;
+using webapi.Entities;
+using webapi.Migrations;
 
 namespace webapi.Services
 {
-    public interface IOnlineUserRepository
+    public class OnlineUserRepository
     {
-        void AddOrUpdate(string username, string connectionId);
-        public void RemoveByUsername(string username);
-        public void RemoveByConnectionId(string connectionId);
-        string GetConnectionId(string username);
-        List<UsernameConnectionMapping> GetAllUsernames();
-    }
-    public class OnlineUserRepository : IOnlineUserRepository
-    {
-        private readonly List<UsernameConnectionMapping> _connections = new();
+        private readonly ConnectionMultiplexer _redis;
+        private readonly IDatabase _db;
+        private readonly ILogger<OnlineUserRepository> _logger;
 
-        public void AddOrUpdate(string username, string connectionId)
+        private readonly string USERNAME_KEY = "usernamekey:";
+
+        //private const string OnlineUsersKey = "OnlineUsers";
+        //private readonly List<UsernameConnectionMapping> _connections = new();
+        public OnlineUserRepository(ILogger<OnlineUserRepository> logger)
         {
-            var existingMapping = _connections.FirstOrDefault(x => x.Username == username);
-            if (existingMapping != null)
+            _redis = ConnectionMultiplexer.Connect(
+                new ConfigurationOptions() 
+                { EndPoints = { "localhost:6379" },
+                    ConnectTimeout = 30000,
+                    SyncTimeout = 30000
+                });
+            _db = _redis.GetDatabase();
+            _logger=logger;
+            if (_redis.IsConnected)
             {
-                existingMapping.ConnectionId = connectionId;
+                var pong = _db.Ping();
+                _logger.LogInformation(pong.ToString());
+                _logger.LogInformation("Connection established."); 
             }
-            else
+            else _logger.LogInformation("Connection failed.");
+        }
+
+        //public async Task<List<UsernameConnectionMapping>> GetOnlineUsers()
+        //{
+        //    var usersObject = await _distributedCache.GetStringAsync(OnlineUsersKey);
+
+        //    if (string.IsNullOrWhiteSpace(usersObject))
+        //    {
+        //        _logger.LogInformation("Online users not found.");
+        //        return null;
+        //    }
+
+        //    var usersList = JsonConvert.DeserializeObject<List<UsernameConnectionMapping>>(usersObject);
+
+        //    return usersList;
+
+        //    //var memoryCacheEntryOptions = new DistributedCacheEntryOptions
+        //    //{
+        //    //    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3600),
+        //    //    SlidingExpiration = TimeSpan.FromSeconds(1200)
+        //    //};
+        //    //await _distributedCache.SetStringAsync(CountriesKey, responseData, memoryCacheEntryOptions);
+        //}
+        public async Task<List<UsernameConnectionMapping>> GetAllUsersAsync()
+        {
+            var server = _redis.GetServer(_redis.GetEndPoints().First());
+            var keys = server.Keys(database: _db.Database)
+                            .Where(value => value.ToString().StartsWith(USERNAME_KEY))
+                            .Select(key => key.ToString());
+
+            var list = new List<UsernameConnectionMapping>();
+            foreach (var key in keys)
             {
-                _connections.Add(new UsernameConnectionMapping { Username = username, ConnectionId = connectionId });
+                var value = await _db.StringGetAsync(key);
+                list.Add(new UsernameConnectionMapping() 
+                { 
+                    Username=key.Split(':')[1], 
+                    ConnectionId=value.ToString() 
+                });
             }
+
+            return list;
+        }
+
+        public async Task AddOrUpdateAsync(string username, string connectionId)
+        {
+            await _db.StringSetAsync(USERNAME_KEY + username, connectionId);
+
+            //_db.SetAdd("connectionids:index", connectionId);
         }
 
         public void RemoveByUsername(string username)
         {
-            var mapping = _connections.FirstOrDefault(x => x.Username == username);
-            if (mapping != null)
-            {
-                _connections.Remove(mapping);
-            }
+            _db.KeyDelete(USERNAME_KEY + username);
         }
+
         public void RemoveByConnectionId(string connectionId)
         {
-            var mapping = _connections.FirstOrDefault(x => x.ConnectionId == connectionId);
-            if (mapping != null)
-            {
-                _connections.Remove(mapping);
-            }
-        }
+            //var username = GetUsernameByConnectionId(connectionId);
 
+            //if (!string.IsNullOrEmpty(username))
+            //{
+            //    // Remove the key-value pair using the username
+            //    _db.KeyDelete(username);
+
+            //    // Clean up the secondary index set
+            //    //_db.SetRemove("connectionids:index", connectionId);
+            //}
+        }
+        public string GetUsernameByConnectionId(string connectionId)
+        {
+            //return _db.StringGet(connectionId);
+            return null;
+        }
         public string GetConnectionId(string username)
         {
-            var mapping = _connections.FirstOrDefault(x => x.Username == username);
-            return mapping?.ConnectionId;
-        }
-
-        public List<UsernameConnectionMapping> GetAllUsernames()
-        {
-            return _connections.ToList();
+            return _db.StringGet(USERNAME_KEY + username).ToString();
         }
     }
     

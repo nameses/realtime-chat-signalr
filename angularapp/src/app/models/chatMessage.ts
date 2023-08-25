@@ -5,4 +5,5 @@ export class ChatMessage {
   public msgText: string = '';
   public ifPrivate?: boolean;
   public msgType: MsgType = MsgType.Text;
+  public userReceiver?: string = '';
 }
