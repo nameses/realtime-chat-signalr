@@ -70,6 +70,12 @@ export class ChatService {
     this.start();
   }
 
+  public onDisconnect() {
+    this.connection
+      .invoke('OnDisconnectedAsync')
+      .catch((err: any) => console.error(err));
+  }
+
   // Start the connection
   public async start() {
     try {
