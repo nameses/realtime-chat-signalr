@@ -24,7 +24,9 @@ namespace webapi.Services
         {
             _redis = ConnectionMultiplexer.Connect(
                 new ConfigurationOptions() 
-                { EndPoints = { "localhost:6379" },
+                { 
+                    EndPoints = { "localhost:6379" },
+                    AllowAdmin = true,
                     ConnectTimeout = 30000,
                     SyncTimeout = 30000
                 });
@@ -32,34 +34,15 @@ namespace webapi.Services
             _logger=logger;
             if (_redis.IsConnected)
             {
+                _logger.LogInformation("Connection established.");
                 var pong = _db.Ping();
-                _logger.LogInformation(pong.ToString());
-                _logger.LogInformation("Connection established."); 
+                _logger.LogInformation("Trying to ping database. Result: " + pong.ToString());
             }
             else _logger.LogInformation("Connection failed.");
+
+            ClearAllDatabases();
         }
 
-        //public async Task<List<UsernameConnectionMapping>> GetOnlineUsers()
-        //{
-        //    var usersObject = await _distributedCache.GetStringAsync(OnlineUsersKey);
-
-        //    if (string.IsNullOrWhiteSpace(usersObject))
-        //    {
-        //        _logger.LogInformation("Online users not found.");
-        //        return null;
-        //    }
-
-        //    var usersList = JsonConvert.DeserializeObject<List<UsernameConnectionMapping>>(usersObject);
-
-        //    return usersList;
-
-        //    //var memoryCacheEntryOptions = new DistributedCacheEntryOptions
-        //    //{
-        //    //    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3600),
-        //    //    SlidingExpiration = TimeSpan.FromSeconds(1200)
-        //    //};
-        //    //await _distributedCache.SetStringAsync(CountriesKey, responseData, memoryCacheEntryOptions);
-        //}
         public async Task<List<UsernameConnectionMapping>> GetAllUsersAsync()
         {
             var server = _redis.GetServer(_redis.GetEndPoints().First());
@@ -126,6 +109,16 @@ namespace webapi.Services
         public string GetConnectionId(string username)
         {
             return _db.StringGet(USERNAME_KEY + username).ToString();
+        }
+
+        public async void ClearAllDatabases()
+        {
+            var endpoints = _redis.GetEndPoints(true);
+            foreach (var endpoint in endpoints)
+            {
+                var server = _redis.GetServer(endpoint);
+                await server.FlushAllDatabasesAsync();
+            }
         }
     }
     
