@@ -15,20 +15,20 @@ namespace webapi.Helper
         {
             _conf=conf;
         }
-        public string GenerateToken(int userId)
+        public string GenerateToken(int userId, string username)
         {
-            var secret = _conf.Value.Key;
-            var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
-
+            var secret = Encoding.ASCII.GetBytes(_conf.Value.Key!);
+            var securityKey = new SymmetricSecurityKey(secret);
             var issuer = _conf.Value.Issuer;
             var audience = _conf.Value.Audience;
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
+                Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                    new Claim("id", userId.ToString()),
+                    new Claim("username", username),
                 }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 Issuer = issuer,

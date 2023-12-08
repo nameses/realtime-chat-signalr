@@ -1,4 +1,4 @@
-<div class="relative">
+<!--<div class="relative">
   <h1 class="flex-grow text-3xl font-bold mb-3 text-center">{{ title }}</h1>
   <button
     class="btn py-1 text-center text-white bg-blue-500 text-xl px-3 rounded-xl absolute right-0 top-0"
@@ -10,9 +10,9 @@
 <div>This is private chat with user {{ user?.username }}</div>
 <div class="w-full px-5 flex flex-col">
   <div class="flex flex-col mt-5">
-    <div *ngFor="let mObj of msgInboxArray">
+    <div *ngFor="let mObj of msgInboxArray">-->
       <!-- new message (public-private)-->
-      <div
+      <!--<div
         *ngIf="mObj.msgType === msgType.Text"
         class="flex flex-col justify-start bg-blue-300 rounded-br-3xl rounded-tr-3xl rounded-tl-xl mb-3"
         [ngClass]="mObj.user === msgDto.user ? 'in-msg' : 'ex-msg'"
@@ -25,9 +25,9 @@
             {{ mObj.msgText }}
           </div>
         </div>
-      </div>
+      </div>-->
       <!-- new user connected message -->
-      <div
+      <!--<div
         *ngIf="mObj.msgType === msgType.NewUserConnected"
         class="flex justify-center bg-blue-300 rounded-3xl mb-3 py-2 text-lg font-normal"
       >
@@ -50,4 +50,4 @@
       <i class="fa fa-paper-plane"></i>
     </button>
   </div>
-</div>
+</div>-->

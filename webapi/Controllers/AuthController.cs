@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using webapi.Entities;
+﻿using Microsoft.AspNetCore.Mvc;
 using webapi.Helper;
+using webapi.Models;
 using webapi.Services;
 
 namespace webapi.Controllers
@@ -13,7 +12,7 @@ namespace webapi.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly JwtGenerator _jwtGenerator;
 
-        public AuthController(IUserService userService,ILogger<AuthController> logger,JwtGenerator jwtGenerator)
+        public AuthController(IUserService userService, ILogger<AuthController> logger, JwtGenerator jwtGenerator)
         {
             _userService = userService;
             _logger=logger;
@@ -22,9 +21,13 @@ namespace webapi.Controllers
 
         [HttpPost]
         [Route("register")]
-        public async Task<IActionResult> Register([FromBody] User userModel)
+        public async Task<IActionResult> Register([FromBody] UserModel user)
         {
-            var createdId = await _userService.CreateAsync(userModel);
+            var userDb = await _userService.GetByUsername(user.Username);
+            if (userDb != null)
+                return BadRequest("Username already exists");
+
+            var createdId = await _userService.CreateAsync(user);
 
             if (createdId==null)
             {
@@ -36,26 +39,30 @@ namespace webapi.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login([FromBody] User user)
+        public async Task<IActionResult> Login([FromBody] UserModel user)
         {
+            if (user==null || user.Password==null || user.Username==null)
+                return BadRequest();
             var dbUser = await _userService.GetByUsername(user.Username);
 
-            if (dbUser == null) 
-            {
+            if (dbUser == null || dbUser.Username==null)
                 return BadRequest("User not found");
-            }
             if (!BCrypt.Net.BCrypt.Verify(user.Password, dbUser.Password))
-            {
-                _logger.LogWarning($"User(Id={dbUser.Id}) password is not correct");
                 return BadRequest("Password not correct.");
-            }
-            _logger.LogInformation($"User(Id={dbUser.Id}) password is correct");
 
-            var token = _jwtGenerator.GenerateToken(user.Id);
+            var token = _jwtGenerator.GenerateToken(dbUser.Id, dbUser.Username);
 
             HttpContext.Response.Cookies.Append("auth_token", token);
 
-            return Ok(new { Id=dbUser.Id,Username=dbUser.Username, Token=token});
+            return Ok(new { Id = dbUser.Id, Username = dbUser.Username, Token = token });
+        }
+
+
+        private class LoginResult
+        {
+            public int? Id;
+            public string? Username;
+            public string? Token;
         }
     }
 }

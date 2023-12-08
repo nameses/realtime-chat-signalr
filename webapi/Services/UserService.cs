@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using webapi.Context;
-using webapi.DTO;
 using webapi.Entities;
 using webapi.Helper;
+using webapi.Models;
 
 namespace webapi.Services
 {
@@ -11,20 +10,18 @@ namespace webapi.Services
     {
         Task<User?> GetByUsername(string username);
         Task<User?> GetById(int id);
-        Task<List<UsernameConnectionMapping>?> GetConnectedUsers();
-        Task<int?> CreateAsync(User user);
+        //Task<List<UsernameConnectionMapping>?> GetConnectedUsers();
+        Task<User?> CreateAsync(UserModel user);
     }
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
-        private readonly OnlineUserRepository _repository;
         private readonly ILogger<UserService> _logger;
         private readonly Encrypter _encrypter;
 
-        public UserService(AppDbContext context, OnlineUserRepository repository, ILogger<UserService> logger, Encrypter encrypter)
+        public UserService(AppDbContext context, ILogger<UserService> logger, Encrypter encrypter)
         {
             _context=context;
-            _repository=repository;
             _logger=logger;
             _encrypter=encrypter;
         }
@@ -38,7 +35,6 @@ namespace webapi.Services
                 return null;
             }
 
-            _logger.LogInformation($"User(username={username},id={user.Id}) successfully found in DB");
             return user;
         }
         public async Task<User?> GetById(int id)
@@ -51,40 +47,25 @@ namespace webapi.Services
                 return null;
             }
 
-            _logger.LogInformation($"User(id={id}) successfully found in DB");
             return user;
         }
 
-        public async Task<List<UsernameConnectionMapping>?> GetConnectedUsers()
+        public async Task<User?> CreateAsync(UserModel user)
         {
-            var users = await _repository.GetAllUsersAsync();
-
-            if (users==null || users.Count==0)
-            {
-                _logger.LogInformation($"Connected users not found ");
-                return null;
-            }
-
-            _logger.LogInformation($"Connected users successfully found ");
-            return users;
-        }
-
-        public async Task<int?> CreateAsync(User user)
-        {
-            if (user==null) 
+            if (user==null)
             {
                 _logger.LogInformation($"User for creation is not valid");
-                throw new ArgumentNullException("User for creation is not valid"); 
+                throw new ArgumentNullException("User for creation is not valid");
             }
-
+            if (user.Password==null) return null;
             user.Password = _encrypter.Encrypt(user.Password);
 
-            await _context.Users.AddAsync(user);
+            var createdEntity = await _context.Users.AddAsync(new User { Username=user.Username, Password=user.Password });
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"Created user with ID {user.Id}");
+            _logger.LogInformation($"Created user with ID {createdEntity.Entity.Id}");
 
-            return user.Id;
+            return createdEntity.Entity;
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Security.Cryptography;
-using System.Text;
 using webapi.Configuration;
 
 namespace webapi.Helper

@@ -1,45 +1,28 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
-using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
+using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.Authentication;
-using System.Net;
 
 namespace webapi.Helper
 {
     public class JwtHandler : JwtBearerHandler
     {
-        private readonly HttpClient _httpClient;
+        private readonly JwtValidator _jwtValidator;
         private readonly ILogger<JwtHandler> _logger;
-        private readonly string API_URL = "https://localhost:4403/api";
 
-        public JwtHandler(HttpClient httpClient,
+        public JwtHandler(JwtValidator jwtValidator,
             ILogger<JwtHandler> logger,
-            IOptionsMonitor<JwtBearerOptions> options, 
+            IOptionsMonitor<JwtBearerOptions> options,
             ILoggerFactory loggerFact,
-            UrlEncoder encoder, 
+            UrlEncoder encoder,
             ISystemClock clock)
             : base(options, loggerFact, encoder, clock)
         {
-            _httpClient = httpClient;
+            _jwtValidator=jwtValidator;
             _logger=logger;
-        }
-        private bool ShouldSkip(HttpContext context)
-        {
-            var excludedPaths = new[]
-            {
-                "/api/auth/register",
-                "/api/auth/login",
-                "/api/validate"
-            };
-            var requestPath = context.Request.Path;
-            return excludedPaths.Any(path => requestPath.StartsWithSegments(path));
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -48,7 +31,7 @@ namespace webapi.Helper
 
             if (ShouldSkip(Context)) return AuthenticateResult.NoResult();
 
-            //get token from query parameters
+            //if signalr hub -> get token from query parameters
             if (Context.Request.Path.StartsWithSegments("/chatsocket") ||
                 Context.Request.Path.StartsWithSegments("/chatsocket/negotiate"))
             {
@@ -65,7 +48,7 @@ namespace webapi.Helper
                     return AuthenticateResult.Fail("ID not found in query parameters.");
                 }
             }
-            //get token from Authorization header
+            //else -> get token from Authorization header
             else
             {
                 if (!Context.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues))
@@ -83,31 +66,28 @@ namespace webapi.Helper
                 token = authorizationHeader.Substring("Bearer ".Length).Trim();
             }
 
-            // Call the API to validate the token
-            var response = await _httpClient.GetAsync(API_URL + $"/validate?token={token}");
+            var userId = _jwtValidator.Validate(token!);
 
-            //_logger.LogInformation(response.ToString());
-            // Return an authentication failure if the response is not successful
-            if (!response.IsSuccessStatusCode)
+            if (userId==null)
             {
                 return AuthenticateResult.Fail("Token validation failed.");
             }
 
-            // Deserialize the response body to a custom object to get the validation result
-            var validationResult = JsonConvert.DeserializeObject<bool>(await response.Content.ReadAsStringAsync());
-
-            // Return an authentication failure if the token is not valid
-            if (!validationResult)
-            {
-                return AuthenticateResult.Fail("Token is not valid.");
-            }
-
-            // Set the authentication result with the claims from the API response
             var principal = GetClaims(token);
 
-            return AuthenticateResult.Success(new AuthenticationTicket(principal, "CustomJwtBearer"));
+            return AuthenticateResult.Success(new AuthenticationTicket(principal, "JwtBearer"));
         }
 
+        private static bool ShouldSkip(HttpContext context)
+        {
+            var excludedPaths = new[]
+            {
+                "/api/auth/register",
+                "/api/auth/login"
+            };
+            var requestPath = context.Request.Path;
+            return excludedPaths.Any(path => requestPath.StartsWithSegments(path));
+        }
 
         private ClaimsPrincipal GetClaims(string Token)
         {

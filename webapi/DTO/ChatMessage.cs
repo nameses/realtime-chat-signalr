@@ -1,8 +1,15 @@
 ﻿namespace webapi.DTO
 {
-    public class ChatMessage
+    public class Message
     {
-        public string user { get; set; }
-        public string msgText { get; set; }
+        public string Content { get; set; }
+        public string Username { get; set; }
+        public DateTime DateTime { get; set; }
+    }
+
+    public enum ChatMessageType
+    {
+        Text = 0,
+        Photo = 1
     }
 }

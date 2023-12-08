@@ -3,7 +3,6 @@ import { AccountService } from '../../services/account.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
 import { Route, Router } from '@angular/router';
-import { ChatService } from 'src/app/services/signalr.service';
 
 @Component({
   selector: 'app-login-form',
@@ -19,8 +18,7 @@ export class LoginFormComponent implements OnInit {
   constructor(
     private accountService: AccountService,
     private formBuilder: FormBuilder,
-    private router: Router,
-    private chatService: ChatService
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -49,7 +47,6 @@ export class LoginFormComponent implements OnInit {
       .subscribe({
         next: () => {
           console.log('Login successful');
-          this.chatService.init();
           this.router.navigateByUrl('');
         },
         error: (error) => {

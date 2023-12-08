@@ -14,8 +14,6 @@ import { GlobalChatComponent } from './components/global-chat/global-chat.compon
 import { Routes, RouterModule } from '@angular/router';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { HomeComponent } from './components/home/home.component';
-import { UsersListComponent } from './components/users-list/users-list.component';
-import { PrivateChatComponent } from './components/private-chat/private-chat.component';
 import { canActivate, canActivateLogin } from './auth.guard';
 
 const appRoutes: Routes = [
@@ -35,16 +33,6 @@ const appRoutes: Routes = [
     component: GlobalChatComponent,
     canActivate: [canActivate],
   },
-  {
-    path: 'users-list',
-    component: UsersListComponent,
-    canActivate: [canActivate],
-  },
-  {
-    path: 'private-chat',
-    component: PrivateChatComponent,
-    canActivate: [canActivate],
-  },
   { path: '**', component: NotFoundComponent },
 ];
 
@@ -55,9 +43,7 @@ const appRoutes: Routes = [
     RegFormComponent,
     GlobalChatComponent,
     NotFoundComponent,
-    HomeComponent,
-    UsersListComponent,
-    PrivateChatComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -67,7 +53,7 @@ const appRoutes: Routes = [
     MatDialogModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule,
+    MatInputModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
